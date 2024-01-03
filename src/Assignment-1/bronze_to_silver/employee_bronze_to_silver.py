@@ -95,3 +95,4 @@ delta_table.history().show(truncate=False)
 
 
 
+
