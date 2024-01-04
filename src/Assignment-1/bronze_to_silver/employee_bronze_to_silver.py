@@ -1,131 +1,97 @@
 # Databricks notebook source
-# MAGIC %run /Users/ashwathgowda216@gmail.com/DatabricksRepo1/Assignment_1/source_to_bronze/utils
+# MAGIC %run "/DataBricksRepo/Assignment-1/source_to_bronze/utils"
 
 # COMMAND ----------
 
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+# Read from DBFS
+employee_df = read_data(spark, "dbfs:/FileStore/employee.csv").show()
+
 
 # COMMAND ----------
 
-# DBTITLE 1,Schema for Employees_table
-emp_schema = StructType([
-    StructField("employee id", StringType(), True),
-    StructField("employee_name", StringType(), True),
-    StructField("department", StringType(), True),
-    StructField("State", StringType(), True),
-    StructField("salary", StringType(), True),
-    StructField("Age", StringType(), True)
-])
+
+# 4.Get custom schema from utils
+custom_schema = get_custom_schema()
+
+# Read the file using different read methods with custom schema
+
+file_path = "dbfs:/FileStore/employee.csv"
+
+# Using CSV format with custom schema
+employee_df_csv = spark.read.format("csv").schema(custom_schema).load(file_path)
+
+# Using Parquet format with custom schema
+employee_df_parquet = spark.read.format("parquet").schema(custom_schema).load(file_path)
+
+# Using Delta format with custom schema
+employee_df_delta =spark.read.format("delta").schema(custom_schema).load(file_path)
+
 
 # COMMAND ----------
 
-# DBTITLE 1,Schema for Departments_table
-dep_schema = StructType([
-    StructField("dept_id", StringType(), True),
-    StructField("dept_name", StringType(), True)
-])
+#5. convert all the column names into lower caseHere
+#here i convert column of employee table
+bronze_df = read_data(spark, "dbfs:/FileStore/employee.csv")
+bronze_df = bronze_df.toDF(*[col.lower() for col in bronze_df.columns])#.show()
 
-# COMMAND ----------
+#Here i am converting column in lower case of country tables
+bronze_df1 = read_data(spark, "dbfs:/FileStore/country.csv")
+bronze_df1 = bronze_df1.toDF(*[col.lower() for col in bronze_df1.columns]).show()
 
-# DBTITLE 1,Schema for Country_table
-cou_schema = StructType([
-    StructField("country_code", StringType(), True),
-    StructField("country_name", StringType(), True)
-])
+#here i convert departement table
+bronze_df2 = read_data(spark, "dbfs:/FileStore/department.csv")
+bronze_df2 = bronze_df2.toDF(*[col.lower() for col in bronze_df2.columns]).show()
+#
+#6 Rename columns
+bronze_df = bronze_df.withColumnRenamed("employee id", "employee_id")\
+    .withColumnRenamed("employee_name", "employee_name")\
+        .withColumnRenamed("department","department_name")\
+            .withColumnRenamed("state", "employee_state")
+#Here i verify the data After rename
+bronze_df.show()
 
-# COMMAND ----------
-
-# DBTITLE 1,Read methods using custom schema 
-file_format='csv'
-path="dbfs:/source_to_bronze/Employees_table.csv"
-df1 = spark.read.format(file_format).option("header" ,True).option("delimiter",',').option("schema",emp_schema).load(path)
-
-path="dbfs:/source_to_bronze/Department_table.csv"
-df2 = spark.read.format(file_format).option("header" ,True).option("delimiter",',').option("schema",dep_schema).load(path)
-
-path="dbfs:/source_to_bronze/Country_table.csv"
-df3 = spark.read.format(file_format).option("header" ,True).option("delimiter",',').option("schema",cou_schema).load(path)
-
-# Display the DataFrames
-df1.display()
-df2.display()
-df3.display()
-
-# COMMAND ----------
-
-# DBTITLE 1,Converting all the column names into lower case.
-# Converting column names to lowercase for the Employees_table DataFrame
-df1 = df1.toDF(*[col.lower() for col in df1.columns])
-
-# Converting column names to lowercase for the Department_table DataFrame
-df2 = df2.toDF(*[col.lower() for col in df2.columns])
-
-# Converting column names to lowercase for the Country_table DataFrame
-df3 = df3.toDF(*[col.lower() for col in df3.columns])
-
-# Display the DataFrames
-df1.display()
-df2.display()
-df3.display()
-
-# COMMAND ----------
-
-# DBTITLE 1,Renameing the column names
-
- # Rename columns for the Employees_table DataFrame
-df1 = df1.withColumnRenamed("employee id", "employee_id") \
-         .withColumnRenamed("employee_name", "employee_name") \
-         .withColumnRenamed("department", "department_name") \
-         .withColumnRenamed("state", "employee_state") \
-         .withColumnRenamed("salary", "salary") \
-         .withColumnRenamed("age", "age")
- 
-
- 
-#Display the DataFrames
-df1.display()
 
 
 
 # COMMAND ----------
 
-from pyspark.sql import SparkSession
+#7 Add load_date column
+from pyspark.sql import functions as F
 
-# Create a Spark session
-spark = SparkSession.builder.appName("EmployeeInfo").getOrCreate()
+current_date = F.current_date()
 
-# Specify the Delta table locations
-delta_location_employees = "dbfs:/silver/employee_info/dim_employee/Employees_table"
-delta_location_departments = "dbfs:/silver/employee_info/dim_employee/Departments_table"
-delta_location_country = "dbfs:/silver/employee_info/dim_employee/Country_table"
-
-# Read the Delta tables
-file_format = "delta"
-df_employees = spark.read.format(file_format).load(delta_location_employees)
-df_departments = spark.read.format(file_format).load(delta_location_departments)
-df_country = spark.read.format(file_format).load(delta_location_country)
-
-# Show the DataFrames
-df_employees.show()
-df_departments.show()
-df_country.show()
-
-# Stop the Spark session
-# spark.stop()
-
+# display(current_date)
+# bronze_df_add=bronze_df.withColumn("load_date",current_date
+# bronze_df_Add.show()
+# Write to Delta table in silver layer
+# bronze_df_delta= bronze_df.write.format("delta").mode("overwrite").save("dbfs:/FileStore/employee.csv")
+# Write to Delta table in silver layer
+# delta =bronze_df.write.format("delta").mode("overwrite").save("/silver/employee_info/dim_employee")
 
 # COMMAND ----------
 
-# DBTITLE 1,Writing Delta table with specified paths and name
-file_format='delta'
-output_path="/silver/employee_info/dim_employee/Employees_table"
-table_name="dim_employee.Employees_table"
-write_delta(df_employees,file_format,output_path,table_name)
+# Add load_date column with the current date
+df = bronze_df.withColumn("load_date", F.current_date())
 
-output_path="/silver/employee_info/dim_employee/Departments_table"
-table_name="dim_employee.Departments_table"
-write_delta(df_departments,file_format,output_path,table_name)
+# Define the Delta table location
+db_name = "employee_info"
+table_name = "dim_employee"
+delta_table_location = f"/silver/{db_name}/{table_name}"
 
-output_path="/silver/employee_info/dim_employee/Country_table"
-table_name="dim_employee.Country_table"
-write_delta(df_country,file_format,output_path,table_name)
+# Write the DataFrame as a Delta table
+bronze_df.write.format("delta").mode("overwrite").save(delta_table_location)
+
+# Optionally, create DeltaTable instance for managing Delta table operations
+delta_table = DeltaTable.forPath(spark, delta_table_location)
+
+# Optimize the table
+delta_table.optimize()
+
+# Vacuum the table to remove old versions
+delta_table.vacuum()
+
+# Display Delta table history
+delta_table.history().show(truncate=False)
+
+
+
