@@ -1,30 +1,26 @@
 # Databricks notebook source
-def read_data(spark, file_path):
-    data_df = spark.read.format("csv").option("header", "true").option("inferSchema", "true").load(file_path)
-    return data_df
-   
-def write_to_csv(df, file_path, header=True, mode="overwrite"):
-    df.write.csv(file_path, header=header, mode=mode)
-    
-    
+# DBTITLE 1,writing the Function for csv.
+def write_csv(df,file_format,path):
+    df.write.format(file_format).save(path, header=True).options(header='True', delimiter=',').csv(path)
 
 # COMMAND ----------
 
-
+# DBTITLE 1,Reading the Function.
+def read_csv(spark,file_format,path,schema):
+    df = spark.read.format(file_format).option("header" ,True).option("schema",schema)
+    df.display()
+    return df
 
 # COMMAND ----------
 
-# utils_notebook
+# DBTITLE 1,Writing Delta table with SCD Type 1
+def write_delta(df,file_format,output_path,table_name):
+    df.write.format(file_format).mode("overwrite").option("path", output_path).saveAsTable(table_name)
 
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+# COMMAND ----------
 
-def get_custom_schema():
-    return StructType([
-        StructField("employee_id", IntegerType(), True),
-        StructField("employee_name", StringType(), True),
-        StructField("department_name", StringType(), True),
-        StructField("employee_state", StringType(), True),
-        StructField("salary", IntegerType(), True),
-        StructField("age", IntegerType(), True)
-    ])
-
+# DBTITLE 1,Reading the delta table
+def read_delta(spark,file_format,delta_location):
+    df = spark.read.format(file_format).load(delta_location)
+    df.display()
+    return df
