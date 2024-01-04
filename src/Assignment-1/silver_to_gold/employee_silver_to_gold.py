@@ -1,6 +1,7 @@
 # Databricks notebook source
 # MAGIC %run "/DataBricksRepo/Assignment-1/source_to_bronze/utils"
 
+
 # COMMAND ----------
 
 #8.In gold notebook employee_silver_to_gold, call utils notebook in this notebook Read the table stored in silver layer as dataframe and drop load_date
