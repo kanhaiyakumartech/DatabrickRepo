@@ -64,12 +64,17 @@ display(site_info_df)
 new_column1 = df.withColumn('site_address',split(col('email'),'@').getItem(1))
 new_column1.display()
 
+
 # COMMAND ----------
 
-# Add load_date with current date
-new_column2= new_column1.withColumn('load_date',lit(current_date()))
-display(new_column2)
-site_info_df=new_column2
+
+from pyspark.sql import functions as F
+
+# Derive a new column from email as site_address with values (reqres.in)
+site_info_df = site_info_df.withColumn("site_address", F.lit("reqres.in"))
+
+# Display the DataFrame with the new column
+display(site_info_df.select("avatar", "email", "first_name", "id", "last_name", "site_address"))
 
 # COMMAND ----------
 
