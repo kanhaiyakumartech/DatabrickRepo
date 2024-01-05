@@ -1,4 +1,4 @@
-from pyspark.sql import SparkSession
+ from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType, LongType
 from pyspark.sql.functions import explode_outer, col, split, lit
 import pyspark.sql.functions as F
