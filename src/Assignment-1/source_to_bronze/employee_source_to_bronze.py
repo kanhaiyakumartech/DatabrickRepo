@@ -1,23 +1,24 @@
+# Databricks notebook source
 
 
 # COMMAND ----------
 
-# DBTITLE 1,Reading employee dataframe
-employee_path="dbfs:/FileStore/employee1.csv"
+# DBTITLE 1,Reading the employee dataframe.
+employee_path="dbfs:/FileStore/employee.csv"
 mode="permissive"
-employee_df = read_csv( employee_path, mode)
+employee_df = read_csv(spark, employee_path, mode)
 
 # COMMAND ----------
 
-# DBTITLE 1,Reading department dataframe
-department_path="dbfs:/FileStore/department1.csv"
-department_df = read_csv( department_path)
+# DBTITLE 1,Reading department dataframe.
+department_path="dbfs:/FileStore/department.csv"
+department_df = read_csv(spark, department_path)
 
 # COMMAND ----------
 
 # DBTITLE 1,Reading country dataframe
-country_path="dbfs:/FileStore/country1.csv"
-country_df = read_csv( country_path)
+country_path="dbfs:/FileStore/country.csv"
+country_df = read_csv(spark, country_path)
 
 # COMMAND ----------
 
@@ -28,7 +29,7 @@ write_to_csv(country_df, path)
 # COMMAND ----------
 
 # DBTITLE 1,Writing department_df to source_to_bronze
-# path="dbfs:/source_to_bronze/department_df.csv"
+path="dbfs:/source_to_bronze/department_df.csv"
 write_to_csv(department_df, path)
 
 # COMMAND ----------
