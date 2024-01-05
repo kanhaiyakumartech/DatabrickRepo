@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run /Users/ashwathgowda216@gmail.com/DatabricksRepo_Final/source_to_bronze/Utils
+
 
 # COMMAND ----------
 
