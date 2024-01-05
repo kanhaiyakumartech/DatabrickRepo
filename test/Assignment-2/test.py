@@ -1,5 +1,4 @@
 # Databricks notebook source
-# MAGIC %run "/Users/sravankumar04032001@gmail.com/Assignment2/Util.py"
 
 # COMMAND ----------
 
